@@ -1,57 +1,24 @@
-from ast import While
+import threading
+from langgraph.graph.state import RunnableConfig
+from src.Controllers.AgentController import AgentController
+from src.Services.UserService import UserService
 from src.Repository.UserRepository import UserRepository
-from src.model.mestreAgent import init_chatbot
+from src.Services.AgentService import AgentService
+from langchain_core.messages import SystemMessage, HumanMessage 
 
-def exibir_menu(logado):
-    print("----- MENU -----")
-    print("1. Criar Cadastro")
-    print("2. Logar")
-    if logado:
-        print("3. Jogar")
-    print("4. Sair")
-    print("----------------")
 
-def jogar(chat ):
-    print("Bem-vindo ao jogo! Digite 'sair' a qualquer momento para encerrar.")
-    while True:
-    
-        player_input = input("")
+controller = AgentController(UserService, UserRepository, AgentService)
+graph = controller.build_graph()
 
-        if player_input.lower() in ["sair", "exit", "quit"]:
-            print("Encerrando o jogo. Até mais!")
-            break
-        response = chat.send_message(str(player_input))
-        print(response.text)
+estado_inicial = {
+    "user": None,
+    "personagem" : None,
+    "opcao" : 0,
+    "tema_desejado" : "medieval",
+    "messages_geradorPersonagem" : [HumanMessage(content="Você é um gerador de personagem para um jogo de RPG Savage Worlds. Crie um personagem com nome, vida, dados de agilidade, dados de astucia, dados de espírito, dados de força e vigor. Considere que o os dados é considerado o tipo de dado que ele vai rodar para cada pericia, exemplo agilidade 4 seria 1d4, a vida deve ser calculada automaticamente conforme a regra do jogo SavageWorld, Siga elas a Risca na criação do Personagem")],
+}
+config = RunnableConfig(configurable={"thread_id": threading.get_ident()})
+graph.invoke(estado_inicial,config=config)    
 
-def main():
-    logado = False
-    while True:
-        exibir_menu(logado)
-        opcao = input("Escolha uma opção: ")
 
-        if opcao == '1':
-            UserRepository.create_user(
-                nome=input("Digite seu nome: "),
-                email=input("Digite seu email: "),
-                senha=input("Digite sua senha: ")
-            )
-        elif opcao == '2':
-            user = UserRepository.get_user_by_email_and_password(
-                email=str(input("Digite seu email: ")),
-                senha=str(input("Digite sua senha: "))
-            )
-            print(user)
-            if user:
-                logado = True
-        elif opcao == '3':
-            client,chat = init_chatbot()
-            jogar(chat)
-        elif opcao == '4':
-            print("Saindo do programa. Até mais!")
-            break
-        else:
-            print("Opção inválida. Tente novamente.")
-        print("\n") 
-
-if __name__ == "__main__":
-    main()
+#print(graph.get_graph().draw_mermaid())

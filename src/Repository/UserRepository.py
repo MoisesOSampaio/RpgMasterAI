@@ -29,14 +29,17 @@ class UserRepository():
             try:
                 ph.verify(usuario[3], senha)
                 print("Login realizado! Bem-vindo {usuario[1]}")
-                return True
+                return usuario
             except VerifyMismatchError:
                 print("Usuário não encontrado")
-                return False
+                return None
+            except TypeError:
+                print("Usuário não encontrado")
+                return None
         except psycopg2.Error as e:
             print("Erro ao cadastrar usuário:", e)
             conn.rollback()
-
+            return None
         finally:
             cursor.close()
             conn.close()

@@ -26,14 +26,18 @@ class UserService:
         print("Encerrando execução...")
 
     def login(self,stateRpg : StateRpg):
-        email = stateRpg["user"].email
-        senha = stateRpg["user"].senha
+        
+        email = input("Digite seu email: ")
+        senha = input("Digite sua senha: ")
+        # email = stateRpg["user"].email
+        # senha = stateRpg["user"].senha
         if not isinstance(email, str) or not isinstance(senha, str):
             print("Erro parametro inválido, na hora do login do usuário")
             return None
         user = self.userRepository.get_user_by_email_and_password(email, senha)
         if user is None:
             return None
+        print(f"Usuário logado: {user}")
         user = UserDTO(
             id=user[0],
             name=user[1],
